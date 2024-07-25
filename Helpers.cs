@@ -1,18 +1,12 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
-using Autodesk.Revit.Attributes;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
 
-namespace RevitAPI_Tasks
+
+namespace RevitAPI_Tasks.Task1
 {
     public class Helpers
     {
-        static public bool IsLinesFlattened(List<Curve> lines)
+        public static bool IsLinesFlattened(List<Curve> lines)
         {
             foreach (var line in lines)
             {
@@ -23,7 +17,7 @@ namespace RevitAPI_Tasks
             }
             return true;
         }   
-        static public List<Curve> FlattenList(List<Curve> lines)
+        public static List<Curve> FlattenList(List<Curve> lines)
         {
             List<Curve> flattenedList = new List<Curve>();
             foreach (var line in lines)
@@ -35,7 +29,7 @@ namespace RevitAPI_Tasks
             return flattenedList;
         }
 
-        static public List<Curve> RearrangeLines(List<Curve> lines)
+        public static List<Curve> RearrangeLines(List<Curve> lines)
         {
             List<Curve> rearrangedList = new List<Curve> { lines[0] };
             lines.RemoveAt(0);

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.Attributes;
 
-namespace RevitAPI_Tasks
+namespace RevitAPI_Tasks.Task1
 {
     [Transaction(TransactionMode.Manual)]
     public class FloorCreator : IExternalCommand
