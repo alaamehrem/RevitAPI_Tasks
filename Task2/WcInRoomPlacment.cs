@@ -8,8 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Autodesk.Revit.UI.Selection;
 using Autodesk.Revit.DB.Architecture;
+using Task2;
 
-namespace Task2
+namespace RevitAPI_Tasks.Task2
 {
     [Transaction(TransactionMode.Manual)]
     public class WcInRoomPlacment : IExternalCommand
@@ -36,6 +37,7 @@ namespace Task2
             {
                 var selectedWallRef = uidoc.Selection.PickObject(ObjectType.Element, new WallFilter(), "Select a wall");
                 selectedWall = doc.GetElement(selectedWallRef.ElementId) as Wall;
+
             }
             catch
             { }
@@ -63,33 +65,48 @@ namespace Task2
                     {
                         //Get the adjacent wall curve if it exists
                         Curve wallCurve = wallSegment.GetCurve();
+                        Wall wall = doc.GetElement(wallSegment.ElementId) as Wall;
 
                         //Get the room door if it exists
-                        var roomDoors = new List<FamilyInstance>();
+                        var roomDoors = Helpers.GetDoors(doc, room, roomSegments);
 
-                        foreach (var segList in roomSegments)
-                        {
-                            foreach(var seg in segList)
-                            {
-                                var doorList = doc.GetElement(seg.ElementId).GetDependentElements(new ElementCategoryFilter(BuiltInCategory.OST_Doors)).ToList()
-                                                .Select(doorId => doc.GetElement(doorId) as FamilyInstance)
-                                                .Where(d => d != null && d.Room.Id == room.Id).ToList();
-                                doorList.ForEach(d => roomDoors.Add(d)); 
-                            }
-                        }
-                        
                         if (roomDoors.Any())
                         {
                             XYZ wallCorner1 = wallCurve.GetEndPoint(0);
                             XYZ wallCorner2 = wallCurve.GetEndPoint(1);
                             XYZ doorCenter = (roomDoors[0].Location as LocationPoint).Point;
-                            if (wallCorner1.DistanceTo(doorCenter) > wallCorner2.DistanceTo(doorCenter))
+                            FamilySymbol ToiletSymbol = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsElementType().Where(f => f is FamilySymbol && f.Name == "ADA").FirstOrDefault() as FamilySymbol;
+                            if (ToiletSymbol == null)
                             {
-                                TaskDialog.Show("Result", "Place the family at the corner 1 " + wallCorner1.ToString() +wallCorner2.ToString());
+                                TaskDialog.Show("Error", "The ADA family is not loaded in the project");
+                                return Result.Failed;
                             }
-                            else
+                            using (Transaction t = new Transaction(doc, "Place Toilet"))
                             {
-                                TaskDialog.Show("Result", "Place the family at the corner 2 " + wallCorner2.ToString() + wallCorner1.ToString());
+                                t.Start();
+                                if (!ToiletSymbol.IsActive)
+                                {
+                                    ToiletSymbol.Activate();
+                                    doc.Regenerate();
+                                }
+                                XYZ placementPoint = wallCorner1.DistanceTo(doorCenter) > wallCorner2.DistanceTo(doorCenter) ? wallCorner1 : wallCorner2;
+                                try
+                                {
+                                    var familyInstance = doc.Create.NewFamilyInstance(placementPoint, ToiletSymbol, wall , Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                                    //Determine the facing direction of the family for vertical Host
+                                    var isFlippedVr = (doorCenter.X - placementPoint.X) < 0 ? familyInstance.flipFacing() : false;
+                                    var isFlippedHz = (doorCenter.Y - placementPoint.Y) > 0 ? familyInstance.flipHand() : false;
+
+
+
+                                    t.Commit();
+                                }
+                                catch
+                                {
+                                    TaskDialog.Show("Error", "The family could not be placed");
+                                    t.RollBack();
+                                }
                             }
                             break;
                         }
