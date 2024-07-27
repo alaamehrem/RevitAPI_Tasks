@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Autodesk.Revit.UI.Selection;
 using Autodesk.Revit.DB.Architecture;
-using Task2;
+using RevitAPI_Tasks.Task2;
 
 namespace RevitAPI_Tasks.Task2
 {
@@ -74,7 +74,6 @@ namespace RevitAPI_Tasks.Task2
 
                             if (roomDoors.Any())
                             {
-
                                 XYZ doorCenter = (roomDoors[0].Location as LocationPoint).Point;
 
                                 View view = uidoc.ActiveView;
@@ -97,32 +96,8 @@ namespace RevitAPI_Tasks.Task2
                                         ToiletSymbol.Activate();
                                         doc.Regenerate();
                                     }
-
-                                    //var familyWidth = ToiletSymbol.Family.get_BoundingBox(view).Max.X - ToiletSymbol.Family.get_BoundingBox(view).Min.X;
-                                    //var familyLength = ToiletSymbol.Family.get_BoundingBox(view).Max.Y - ToiletSymbol.Family.get_BoundingBox(view).Min.Y;
                                     XYZ placementPoint = wallCorner1.DistanceTo(doorCenter) > wallCorner2.DistanceTo(doorCenter) ? wallCorner1 : wallCorner2;
-                                    //if (wallCorner1.DistanceTo(doorCenter) > wallCorner2.DistanceTo(doorCenter))
-                                    //{
-                                    //    if (Math.Abs(wall.Orientation.Y) == 1) //Horizontal wall
-                                    //    {
-                                    //        placementPoint = wallCorner1 - new XYZ(1.5 , 0 ,0);
-                                    //    }
-                                    //    else //Vertical wall
-                                    //    {
-                                    //        placementPoint = wallCorner1 + new XYZ(0, 1.5, 0);
-                                    //    }
-                                    //}
-                                    //else
-                                    //{
-                                    //    if (Math.Abs(wall.Orientation.Y) == 1) //Horizontal wall
-                                    //    {
-                                    //        placementPoint = wallCorner2 + new XYZ(1.5, 0, 0);
-                                    //    }
-                                    //    else
-                                    //    {
-                                    //        placementPoint = wallCorner2 + new XYZ(0, 1.5, 0);
-                                    //    }
-                                    //}
+
                                     try
                                     {
                                         var familyInstance = doc.Create.NewFamilyInstance(placementPoint, ToiletSymbol, wall, Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
@@ -159,10 +134,6 @@ namespace RevitAPI_Tasks.Task2
                                             if ((doorCenter.X - placementPoint.X) < 0)
                                             {
                                                 familyInstance.flipFacing();
-                                                //// Calculate the translation vector
-                                                //XYZ translation = new XYZ(0, 1.5, 0);
-                                                //// Move the family instance
-                                                //ElementTransformUtils.MoveElement(doc, familyInstance.Id, translation);
                                             }
 
                                             if ((doorCenter.Y - placementPoint.Y) > 0)
@@ -218,57 +189,3 @@ namespace RevitAPI_Tasks.Task2
         }
     }
 }
-//using (Transaction t2 = new Transaction(doc, "Align Toilet"))
-//{
-//    t2.Start();
-//    //Get the placed family Instance
-//    var PlacedfamilyInstance = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().Where(f => f is FamilyInstance && f.Name == "ADA").FirstOrDefault() as FamilyInstance;
-
-//    //Align the family with the room boundary
-
-//    //Room boundary
-//    var roomMinX = room.get_BoundingBox(view).Min.X;
-//    var roomMaxX = room.get_BoundingBox(view).Max.X;
-//    var roomMinY = room.get_BoundingBox(view).Min.Y;
-//    var roomMaxY = room.get_BoundingBox(view).Max.Y;
-
-//    //Family boundary
-//    var familyMinX = PlacedfamilyInstance.get_BoundingBox(view).Min.X;
-//    var familyMaxX = PlacedfamilyInstance.get_BoundingBox(view).Max.X;
-//    var familyMinY = PlacedfamilyInstance.get_BoundingBox(view).Min.Y;
-//    var familyMaxY = PlacedfamilyInstance.get_BoundingBox(view).Max.Y;
-
-//    //Align the family with the room boundary
-//    if (familyMinX < roomMinX) //Move the family to the right
-//    {
-//        // Calculate the translation vector
-//        XYZ translation = new XYZ((familyWidth / 2), 0, 0);
-//        // Move the family instance
-//        ElementTransformUtils.MoveElement(doc, PlacedfamilyInstance.Id, translation);
-//    }
-//    if (familyMaxX > roomMaxX) //Move the family to the left
-//    {
-//        // Calculate the translation vector
-//        XYZ translation = new XYZ((familyWidth / 2) * -1, 0, 0);
-
-//        // Move the family instance
-//        ElementTransformUtils.MoveElement(doc, PlacedfamilyInstance.Id, translation);
-//    }
-//    if (familyMinY < roomMinY) //Move the family up
-//    {
-//        // Calculate the translation vector
-//        XYZ translation = new XYZ(0, (familyLength / 2), 0);
-
-//        // Move the family instance
-//        ElementTransformUtils.MoveElement(doc, PlacedfamilyInstance.Id, translation);
-//    }
-//    if (familyMaxY > roomMaxY) //Move the family down
-//    {
-//        // Calculate the translation vector
-//        XYZ translation = new XYZ(0, (familyLength / 2) * -1, 0);
-
-//        // Move the family instance
-//        ElementTransformUtils.MoveElement(doc, PlacedfamilyInstance.Id, translation);
-//    }
-//    t2.Commit();
-//}
